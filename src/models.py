@@ -34,6 +34,18 @@ class People(db.Model):
     def __repr__(self):
         return '<People %r>' % self.name
     
+    def serialize(self):
+        print(self)
+        return{
+            "name": self.name,
+            "birth_year": self.birth_year,
+            "eye_color": self.gender,
+            "gender": self.gender,
+            "hair_color": self.hair_color,
+            "homeworld_name": self.homeworld.name,
+            "homeworld_id": self.homeworld_id
+                    }
+    
 class Planets(db.Model):
     __tablename__ = 'planets'
     id = db.Column(db.Integer, primary_key=True)
