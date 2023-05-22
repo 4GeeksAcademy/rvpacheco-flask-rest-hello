@@ -101,6 +101,29 @@ def people_get():
     people=list(map(lambda person: person.serialize(), people))
     return jsonify(people)
 
+@app.route("/people/<int:people_id>", methods=["GET"])
+def people_getId(people_id):
+    people=People.query.get(people_id)
+    if (people is None):
+        return jsonify({"msg":"People no registrado"}), 404
+    
+    return jsonify(people.serialize())
+
+@app.route("/planets", methods=["GET"])
+def planets_get():
+    planets=Planets.query.all()
+    planets=list(map(lambda planet: planet.serialize(), planets))
+    return jsonify(planets)
+
+@app.route("/planets/<int:planets_id>", methods=["GET"])
+def planets_getId(planets_id):
+    planets=Planets.query.get(planets_id)
+    if (planets is None):
+        return jsonify({"msg":"planets no registrado"}), 404
+    
+    return jsonify(planets.serialize())
+
+
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3000))

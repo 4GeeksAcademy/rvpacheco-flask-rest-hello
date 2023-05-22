@@ -59,6 +59,12 @@ class Planets(db.Model):
     def __repr__(self):
         return '<Planets %r>' % self.name
    
+    def serialize(self):
+        return {
+            "name":self.name,
+            "climate":self.climate,
+            "gravity":self.gravity
+        }
 class Favorites(db.Model):
     __tablename__='favorites'
     id=db.Column(db.Integer, primary_key=True)
@@ -69,3 +75,10 @@ class Favorites(db.Model):
 
     def __repr__(self):
         return '<Favorite %r/%r>' % self.type % self.element_id
+    
+    def serialize(self):
+        return {
+            "type":self.type,
+            "element_id":self.element_id,
+            "userId":self.user_id
+        }
