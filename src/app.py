@@ -9,10 +9,16 @@ from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
 from models import db, User, People, Planets, Favorites
+from flask_bcrypt import Bcrypt
+from flask_jwt_extended import create_access_token, JWTManager
+from flask_jwt_extended import jwt_required
 #from models import Person
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
+
+app.config["JWT_SECRET_KEY"]=os.getenv("FLASK_APP_KEY")
+jwt = JWTManager(app)
 
 db_url = os.getenv("DATABASE_URL")
 if db_url is not None:
@@ -62,6 +68,53 @@ def user_create():
     print("_____ Diccionario ______")
     print(new_user.serialize())
     return "ok"
+
+@app.route("/signup", methods=["POST"])
+def signup():
+    data = request.get_json()
+    print(data)
+    new_user = User.query.filter_by(email=data["email"]).first()
+    if (new_user is not None):
+        return jsonify({
+            "msg":"Email registrado"
+        }),400
+    secure_password = bcrypt.generate_password_hash(
+        data["password"],rounds = None).decode("utf-8")
+    new_user = User(email = data["email"],
+                    password = secure_password, is_active=True)
+    db.session.add(new_user)
+    db.session.commit()
+    return jsonify(new_user.serialize()), 201
+
+@app.route("/login", methods=["POST"])
+def user_login():
+    user_email = request.json.get("email")
+    user_password = request.json.get("password")
+    # buscar el usuario por el correo
+    user = User.query.filter_by(email=user_email).first()
+    if user is None:
+        return jsonify({"message": "User no found"}), 401
+    
+    #verificar la clave
+    if not bcrypt.check_password_hash(user.password, user_password):
+        return jsonify({"message": "Wrong password"}),401
+    #generar el token
+    acces_token = create_access_token(identify=user.id)
+    #retornar el token
+    return jsonify({"accessToken": acces_token})
+
+@app.route("/helloprotected",methods=['GET'])
+@jwt_required()
+def hello_protected_get():
+    user_id= get_jwt_identity()
+    return jsonify({
+        "userId": user_id,
+        "message": "Hello protected routed"
+    })
+    
+
+
+
 
 @app.route("/user/<int:user_id>", methods=["GET"])
 def user_get(user_id):
